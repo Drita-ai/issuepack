@@ -1,3 +1,9 @@
 fastapi[standard]
 PyGithub
 python-dotenv
+langchain
+langchain-core
+langchain-community
+sentence-transformers
+chromadb
+langchain-groq
