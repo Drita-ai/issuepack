@@ -11,7 +11,7 @@ class RAGRetriever:
         
     def retrieve(self, query: str, top_k: int = 5, score_threshold: float = 0.0) -> List[Dict[str, Any]]:
         """Retrieve relevant documents for a query"""
-        print("Retrieving documents for query: '{query}'")
+        print(f"Retrieving documents for query: '{query}'")
         print(f"Top K: {top_k}, Score threshold: {score_threshold}")
         
         # Generate query embeddings
@@ -19,6 +19,7 @@ class RAGRetriever:
         
         # Search in vector store
         try:
+            # TODO: Effectively retrieve all the chunks of the same file.
             results = self.vector_store.collection.query(
                 query_embeddings=[query_embedding.tolist()],
                 n_results=top_k
@@ -58,5 +59,3 @@ class RAGRetriever:
         
 # Lemme do it
 rr = RAGRetriever(VectorStore(), EmbeddingManager())
-
-rr.retrieve("userController")
