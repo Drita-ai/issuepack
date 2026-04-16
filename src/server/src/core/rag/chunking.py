@@ -58,17 +58,18 @@ def extract_js_entities(node, code_bytes, chunks):
                                 "type": "import",
                                 "name": get_text(actual_id),
                                 "source": source,
-                                "code": full_code
+                                "code": full_code,
+                                "byte_range": {"start": node.start_byte, "end": node.end_byte}
                             })
                     else:
-                        chunks.append({"type": "import", "name": name, "source": source, "code": full_code})
+                        chunks.append({"type": "import", "name": name, "source": source, "code": full_code, "byte_range": {"start": node.start_byte, "end": node.end_byte}})
                 else:
-                    chunks.append({"type": "variable", "name": name, "code": full_code})
+                    chunks.append({"type": "variable", "name": name, "code": full_code, "byte_range": {"start": node.start_byte, "end": node.end_byte}})
             
             elif value_node and value_node.type in ["arrow_function", "function_expression"]:
-                chunks.append({"type": "function", "name": name, "code": full_code})
+                chunks.append({"type": "function", "name": name, "code": full_code, "byte_range": {"start": node.start_byte, "end": node.end_byte}})
             else:
-                chunks.append({"type": "variable", "name": name, "code": full_code})
+                chunks.append({"type": "variable", "name": name, "code": full_code, "byte_range": {"start": node.start_byte, "end": node.end_byte}})
 
     # Handle Exports/Assignments
     elif node_type == "assignment_expression":
@@ -88,9 +89,9 @@ def extract_js_entities(node, code_bytes, chunks):
             val_text = get_text(right)
             # Captures functions and wrapped functions (catchAsync)
             if right.type in ["arrow_function", "function_expression"] or "=>" in val_text or "async" in val_text:
-                chunks.append({"type": "function", "name": name, "code": full_code})
+                chunks.append({"type": "function", "name": name, "code": full_code, "byte_range": {"start": node.start_byte, "end": node.end_byte}})
             else:
-                chunks.append({"type": "variable", "name": name, "code": full_code})
+                chunks.append({"type": "variable", "name": name, "code": full_code, "byte_range": {"start": node.start_byte, "end": node.end_byte}})
 
     # Recursion
     if node_type not in ["function_declaration", "arrow_function", "function_expression"]:
@@ -135,7 +136,8 @@ def split_and_chunk_entities(docs):
                 doc_chunks.append(create_doc(json.dumps(chunk), {
                     'source': doc.metadata['source'],
                     'source_file': doc.metadata['source_file'],
-                    'file_type': doc.metadata['file_type']
+                    'file_type': doc.metadata['file_type'],
+                    'byte_range': json.dumps(chunk["byte_range"])
                 }))    
         
         split_docs.append(doc_chunks)
