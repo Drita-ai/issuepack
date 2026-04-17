@@ -1,4 +1,4 @@
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Optional
 
 from vector_store import VectorStore
 from embedding import EmbeddingManager
@@ -9,8 +9,18 @@ class RAGRetriever:
         self.vector_store = vector_store
         self.embedding_manager = embedding_manager
         
-    def retrieve(self, query: str, top_k: int = 5, score_threshold: float = 0.0) -> List[Dict[str, Any]]:
+    def retrieve(
+        self, 
+        query: str, 
+        top_k: int = 5, 
+        score_threshold: float = 0.0,
+        filter_metadata: bool = False,
+        metadata_query: Optional[Dict] = None
+        ) -> List[Dict[str, Any]]:
         """Retrieve relevant documents for a query"""
+        if metadata_query is None:
+            metadata_query = {}
+        
         print(f"Retrieving documents for query: '{query}'")
         print(f"Top K: {top_k}, Score threshold: {score_threshold}")
         
@@ -19,12 +29,18 @@ class RAGRetriever:
         
         # Search in vector store
         try:
-            # TODO: Effectively retrieve all the chunks of the same file.
-            results = self.vector_store.collection.query(
-                query_embeddings=[query_embedding.tolist()],
-                n_results=top_k
-            )
-            print(results)
+            results = {}
+            if not filter_metadata:
+                results = self.vector_store.collection.query(
+                    query_embeddings=[query_embedding.tolist()],
+                    n_results=top_k
+                )
+            else:
+                results = self.vector_store.collection.query(
+                    query_embeddings=[query_embedding.tolist()],
+                    where=metadata_query,
+                    n_results=100
+                )
             # Process results
             retrieved_docs = []
             
