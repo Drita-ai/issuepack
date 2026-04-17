@@ -21,9 +21,46 @@ def extract_js_entities(node, code_bytes, chunks):
         return code_bytes[n.start_byte:n.end_byte]
     
     node_type = node.type
+    
+    # Handle Class Declaration
+    if node_type == "class_declaration":
+        sig = get_class_signature(node, code_bytes)
+
+        class_fields = []
+
+        for child in node.children:
+            if child.type == "class_body":
+                for member in child.children:
+                    if member.type in ["public_field_definition", "field_definition"]:
+                        class_fields.append(get_text(member))
+        
+        class_code = []
+        
+        class_code.append(sig)
+        class_code.append("{")
+        class_code.extend(class_fields)
+        class_code.append("}")
+
+        chunks.append({
+            "type": "class",
+            "name": extract_class_name(node, get_text),
+            "code": "\n".join(class_code),
+            "byte_range": {"start": node.start_byte, "end": node.end_byte}
+        })
+        
+    # Handle Method Definition
+    if node_type == "method_definition":
+        # CHANGED: Fallback to positional if field name fails
+        name_node = node.child_by_field_name("name") or node.named_child(0)
+        chunks.append({
+            "type": "method",
+            "name": get_text(name_node) or "anonymous",
+            "code": get_text(node),
+            "byte_range": {"start": node.start_byte, "end": node.end_byte}
+        })
 
     # Handle Function Declarations
-    if node_type == "function_declaration":
+    elif node_type == "function_declaration":
         name_node = node.child_by_field_name("name") or node.named_child(0)
         chunks.append({
             "type": "function",
@@ -94,7 +131,7 @@ def extract_js_entities(node, code_bytes, chunks):
                 chunks.append({"type": "variable", "name": name, "code": full_code, "byte_range": {"start": node.start_byte, "end": node.end_byte}})
 
     # Recursion
-    if node_type not in ["function_declaration", "arrow_function", "function_expression"]:
+    if node_type not in ["function_declaration", "arrow_function", "function_expression", "method_definition"]:
         for child in node.children:
             extract_js_entities(child, code_bytes, chunks)
 
@@ -152,3 +189,14 @@ def create_doc(page_content, metadata):
 
 def clean_string(s):
     return s.strip().strip('"').strip("'")
+
+def get_class_signature(node, source_code):
+    for child in node.children:
+        if child.type == "class_body":
+            return source_code[node.start_byte:child.start_byte].strip()
+    return ""
+
+
+def extract_class_name(node, fn):
+    name_node = node.child_by_field_name("name") or node.named_child(0)
+    return fn(name_node) if name_node else "anonymous"
