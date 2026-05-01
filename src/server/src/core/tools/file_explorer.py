@@ -9,7 +9,7 @@ def get_directory_tree(ROOT_DIR) -> str | None:
     """
     Returns tree representation of provided Directory
     """
-    return DisplayTree(ROOT_DIR, ignoreList=EXCLUDED)
+    return DisplayTree(ROOT_DIR, ignoreList=EXCLUDED, stringRep=True)
 
 def _get_all_files(ROOT_DIR):
     """
