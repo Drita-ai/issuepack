@@ -5,6 +5,7 @@ from data_loader import process_all_files
 from chunking import split_and_chunk_entities
 from embedding import EmbeddingManager
 from vector_store import VectorStore
+from tools.skeletonizer import skeletonize
 
 # Loading ENVs
 load_dotenv()
@@ -13,6 +14,9 @@ load_dotenv()
 if __name__ == "__main__":
     # Fetching the path of file to pass into the TextLoader
     root_dir = os.environ['ROOT_DIR']
+    
+    # Skeletonize
+    skeletonize(root_dir)
     
     # Fetching all files from the target directory
     all_files = process_all_files(root_dir, "js")
