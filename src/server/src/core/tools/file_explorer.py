@@ -31,3 +31,23 @@ def _get_all_files(ROOT_DIR):
             
         if item.is_dir():
             yield from _get_all_files(item)
+
+def _read_file_contents(files):
+    """
+    Returns contents of all files
+    """
+    _files_content = []
+    
+    for file in files:
+        try:
+            _content = ""
+            with open(file, "r", encoding="utf-8") as f:
+                for line in f:
+                    _content = _content + line
+                    
+            _file_name = str(file).split("/")[-1]
+            
+            _files_content.append({"file_name": _file_name, "file_content": _content})
+        except Exception as e:
+            print(e)
+    return _files_content
