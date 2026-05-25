@@ -1,6 +1,7 @@
 import os
 
 import chromadb
+from chromadb.utils.embedding_functions import ChromaBm25EmbeddingFunction
 from typing import List, Any
 import numpy as np
 import uuid
@@ -12,7 +13,8 @@ class VectorStore:
         self.collection_name = collection_name
         self.persist_directory = persist_directory
         self.client = None
-        self.collection = None
+        self.dense_collection = None
+        self.bm25_collection = None
         self._initialize_store()
         
     def _initialize_store(self):
@@ -23,12 +25,18 @@ class VectorStore:
             self.client = chromadb.PersistentClient(path=self.persist_directory)
             
             # Get collection
-            self.collection = self.client.get_or_create_collection(
-                name=self.collection_name,
-                metadata={"description": "py document embeddings for RAG"}
+            self.dense_collection = self.client.get_or_create_collection(
+                name=f"{self.collection_name}_dense",
+                metadata={"description": "Dense text embedding for code snippets"}
             )
-            print(f"Vector store initialized. Collection: {self.collection_name}")
-            print(f"Existing documents in collection: {self.collection.count()}")
+            
+            self.bm25_collection = self.client.get_or_create_collection(
+                name=f"{self.collection_name}_bm25",
+                metadata={"description": "Chroma BM25 embedding for code snippets"}
+            )
+            
+            print(f"Dense Docs Count: {self.dense_collection.count()}")
+            print(f"BM25 Docs Count: {self.bm25_collection.count()}")
         except Exception as e:
             print(f"Error initializing vector store: {e}")
             raise
@@ -44,7 +52,7 @@ class VectorStore:
         ids = []
         metadatas = []
         documents_text = []
-        embeddings_list = []
+        dense_embeddings_list = []
         
         for i, (doc, embedding) in enumerate(zip(documents, embeddings)):
             # Generate unique id for specific record
@@ -61,19 +69,26 @@ class VectorStore:
             documents_text.append(doc.page_content)
             
             # Get document embedding
-            embeddings_list.append(embedding.tolist())
+            dense_embeddings_list.append([float(x) for x in embedding])
         
         # Add to collection    
         try:
-            self.collection.add(
+            self.dense_collection.add(
                 ids=ids,
-                embeddings=embeddings_list,
+                embeddings=dense_embeddings_list,
+                metadatas=metadatas,
+                documents=documents_text
+            )
+                        
+            self.bm25_collection.add(
+                ids=ids,
                 metadatas=metadatas,
                 documents=documents_text
             )
             
             print(f"Successfully added {len(documents)} documents to vector shape")
-            print(f"Total documents in collection: {self.collection.count()}")
+            print(f"Dense Collection Count: {self.dense_collection.count()}")
+            print(f"BM25 Collection Count: {self.bm25_collection.count()}")
         except Exception as e:
             print(f"Error adding documents to vector store: {e}")
             raise
