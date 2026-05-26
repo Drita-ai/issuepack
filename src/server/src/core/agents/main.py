@@ -62,6 +62,12 @@ if __name__ == "__main__":
     # Create an explicit tracer pointing to your project
     tracer = LangChainTracer(project_name="issuepack")
     
+    # Get skeletonized contents
+    skeletonized_content = ''
+    with open("skeleton.txt", "r", encoding="utf-8") as f:
+        for line in f:
+            skeletonized_content = skeletonized_content + line
+    
     final_workflow.invoke(
         {
         "messages": [HumanMessage(content="Solve issue #422")],
@@ -69,6 +75,7 @@ if __name__ == "__main__":
         "org_name": sys.argv[1],
         "repo_name": sys.argv[2],
         "issue_number": sys.argv[3],
+        "code_skeleton": skeletonized_content
     },  
         # config={"callbacks": [tracer]} # uncomment for tracing
     )

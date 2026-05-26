@@ -14,3 +14,4 @@ class State(MessagesState):
     issue_description: Optional[str] = None
     rag_query: Optional[str] = None
     relevant_code: Optional[str] = None
+    code_skeleton: str
