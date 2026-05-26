@@ -17,7 +17,7 @@ def github_issue_fetcher_agent(state: State):
             return {
                 "issue_title": data.get("issue_title", ""),
                 "issue_description": data.get("issue_description", ""),
-                "next_agent": "rag_query_generator" 
+                "next_agent": "relevant_files_selector" 
             }
         except Exception as e:
             print(e)
