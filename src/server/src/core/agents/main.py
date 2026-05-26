@@ -10,7 +10,9 @@ from agents.github_issue_fetcher import github_issue_fetcher_agent
 from agents.rag_query_generator import rag_query_generator_agent
 from agents.issue_solver import issue_solver_agent
 from agents.solution_implementer import solution_implementer_agent
-from agents.tools import fetch_github_issues, fetch_relevant_files, write_file
+from agents.relevant_files_selector import relevant_files_selector_agent
+from agents.relevant_files_verifier import relevant_files_verifier_agent
+from agents.tools import fetch_github_issues, fetch_relevant_files, write_file, append_missing_files_node
 
     
 
@@ -33,9 +35,13 @@ if __name__ == "__main__":
 
     # nodes
     workflow.add_node("github_issue_fetcher", github_issue_fetcher_agent)
-    workflow.add_node("rag_query_generator", rag_query_generator_agent)
+    # workflow.add_node("rag_query_generator", rag_query_generator_agent)
+    workflow.add_node("relevant_files_selector", relevant_files_selector_agent)
+    workflow.add_node("relevant_files_verifier", relevant_files_verifier_agent)
     workflow.add_node("issue_solver", issue_solver_agent)
     workflow.add_node("solution_implementer", solution_implementer_agent)
+    workflow.add_node("fetch_missing_files", append_missing_files_node)
+    workflow.add_node("file_fetcher", fetch_relevant_files)
     workflow.add_node("github_tools", ToolNode([fetch_github_issues]))
     workflow.add_node("implementation_tools", ToolNode([fetch_relevant_files, write_file]))
 
@@ -43,11 +49,19 @@ if __name__ == "__main__":
     workflow.set_entry_point("github_issue_fetcher")
     workflow.add_conditional_edges("github_issue_fetcher", router, {
         "tools": "github_tools",
-        "rag_query_generator": "rag_query_generator",
-        "__end__": END
+        "relevant_files_selector": "relevant_files_selector",
     })
     workflow.add_edge("github_tools", "github_issue_fetcher")
-    workflow.add_edge("rag_query_generator", "issue_solver")
+    workflow.add_edge("relevant_files_selector", "file_fetcher")
+    workflow.add_edge("file_fetcher", "relevant_files_verifier")
+    workflow.add_conditional_edges(
+    "relevant_files_verifier",
+    router,
+    {
+        "fetch_missing_files": "fetch_missing_files",
+        "issue_solver": "issue_solver",
+    })
+    workflow.add_edge("fetch_missing_files", "file_fetcher")
     workflow.add_edge("issue_solver", "solution_implementer")
     workflow.add_conditional_edges("solution_implementer", router, {
         "tools": "implementation_tools",
