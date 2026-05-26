@@ -12,10 +12,6 @@ class FileSelectionTarget(BaseModel):
     analysis: str = Field(description="Technical justification explaining the path to selected files.")
     target_files: List[str] = Field(description="List of relative files from the skeleton map.")
 
-class VerificationResult(BaseModel):
-    status: Literal["APPROVED", "REJECTED"] = Field(description="APPROVED if files are sufficient, REJECTED if missing files.")
-    missing_files: List[str] = Field(default=[], description="List of missing files if REJECTED.")
-
 RELEVANT_FILES_SELECTOR_PROMPT_TEMPLATE = ChatPromptTemplate.from_messages([
    ("system", RELEVANT_FILES_SELECTOR_PROMPT),
    ("user", "codebase_skeleton: {codebase_skeleton} \ntitle: {issue_title} \ndescription: {issue_description}")

@@ -143,3 +143,38 @@ conversational filler before or after the JSON block.
   ]
 }}
 """
+
+RELEVANT_FILES_VERIFIER_PROMPT = """
+You are an expert QA and Code Review Agent. Your job is to verify if the 
+implementation contents of the currently fetched files are sufficient to 
+completely resolve the given GitHub issue.
+
+### 1. Inputs
+#### GitHub Issue Description 
+{issue_description}
+
+#### Codebase Skeleton Map
+{codebase_skeleton}
+
+#### Currently fetched file contents
+{fetched_contents} 
+
+### 2. Instructions & Constraints
+1. Read the provided file contents carefully. Look for logic paths, type 
+  definitions, and bug locations.
+2. If the current content is empty or contains placeholder text, analyze the Codebase Skeleton Map to identify the precise file paths where the code actually lives.
+3. DO NOT guess generic paths like 'routes.js', 'logger.js', or 'endpoint.js'. You must ONLY output file paths that are explicitly, literally written as keys or files inside the Codebase Skeleton Map.
+4. If the listed files in the skeleton map are sufficient, you MUST return "status": "APPROVED".
+
+### 3. Response Format
+You must respond strictly in the following JSON format. Do not include any 
+conversational filler before or after the JSON block.
+
+{{
+  "status": "APPROVED or REJECTED",
+  "missing_files": [
+    "name_of_the_file.ext",
+    "name_of_the_file2.ext"
+  ]
+}}
+"""
