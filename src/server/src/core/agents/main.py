@@ -1,3 +1,5 @@
+import sys 
+
 from langchain_core.tracers.langchain import LangChainTracer
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.graph import StateGraph, END
@@ -63,6 +65,10 @@ if __name__ == "__main__":
     final_workflow.invoke(
         {
         "messages": [HumanMessage(content="Solve issue #422")],
+        # To be accepted through CLI for now
+        "org_name": sys.argv[1],
+        "repo_name": sys.argv[2],
+        "issue_number": sys.argv[3],
     },  
         # config={"callbacks": [tracer]} # uncomment for tracing
     )
