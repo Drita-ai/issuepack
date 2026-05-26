@@ -143,7 +143,18 @@ def write_file(path: str, content: str) -> str:
         
     except Exception as e:
         return f"Error writing to {path}: {str(e)}"
-      
+
+def append_missing_files_node(state):
+    backlog = state.get("missing_files_backlog", []) or []
+    current_selection = state.get("selected_files", []) or []
+    
+    updated_selection = list(set(current_selection + backlog))
+    print(f"Appending to fetcher queue: {updated_selection}")
+    
+    return {
+        "selected_files": updated_selection,
+        "next_agent": "file_fetcher"
+    } 
 
 # Util functions for fetch_relevant_files 
 def _order_code_chunks(results):
